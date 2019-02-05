@@ -6,6 +6,7 @@ import android.os.Handler;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
@@ -32,8 +33,19 @@ public class GameActivity extends AppCompatActivity implements View.OnClickListe
     private int mNumberOfQuestion;
 
     public static final String BUNDLE_EXTRA_SCORE = "BUNDLE_EXTRA_SCORE";
+    public static final String BUNDLE_STATE_SCORE = "currentScore";
+    public static final String BUNDLE_STATE_QUESTION = "currentQuestion";
 
+    private boolean mEnableTouchEvents;
 
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+
+        outState.putInt(BUNDLE_STATE_SCORE, mScore);
+        outState.putInt(BUNDLE_STATE_QUESTION, mNumberOfQuestion);
+
+        super.onSaveInstanceState(outState);
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -44,6 +56,15 @@ public class GameActivity extends AppCompatActivity implements View.OnClickListe
 
         mScore = 0;
         mNumberOfQuestion = 4;
+        mEnableTouchEvents = true;
+
+        if (savedInstanceState != null) {
+            mScore = savedInstanceState.getInt(BUNDLE_STATE_SCORE);
+            mNumberOfQuestion = savedInstanceState.getInt(BUNDLE_STATE_QUESTION);
+        } else {
+            mScore = 0;
+            mNumberOfQuestion = 4;
+        }
 
         mQuestionText = (TextView) findViewById(R.id.activity_game_question_txt);
         mAnswer1Button = (Button) findViewById(R.id.activity_game_answer1_btn);
@@ -80,22 +101,28 @@ public class GameActivity extends AppCompatActivity implements View.OnClickListe
             Toast.makeText(this,"Wrong Answer", Toast.LENGTH_SHORT).show();
         }
 
+        mEnableTouchEvents = false;
+
         new Handler().postDelayed(new Runnable(){
             @Override
             public void run() {
+                mEnableTouchEvents = true;
+
                 if(--mNumberOfQuestion == 0){
                     // End of the game
                     endGame();
                 }
                 else{
                     mCurrentQuestion = mQuestionBank.getQuestion();
-                    this.displayQuestion(mCurrentQuestion);
+                    displayQuestion(mCurrentQuestion);
                 }
             }
         }, 2000);
+    }
 
-
-
+    @Override
+    public boolean dispatchTouchEvent(MotionEvent ev) {
+        return mEnableTouchEvents && super.dispatchTouchEvent(ev);
     }
 
     private void endGame(){
