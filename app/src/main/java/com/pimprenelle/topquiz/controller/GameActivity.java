@@ -1,36 +1,43 @@
 package com.pimprenelle.topquiz.controller;
 
+import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.graphics.Color;
 import android.os.Handler;
-import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.pimprenelle.topquiz.R;
 import com.pimprenelle.topquiz.model.Question;
 import com.pimprenelle.topquiz.model.QuestionBank;
+import com.pimprenelle.topquiz.R;
+
 
 import java.util.Arrays;
 
-public class GameActivity extends AppCompatActivity implements View.OnClickListener{
+public class GameActivity extends AppCompatActivity implements View.OnClickListener {
 
-    private TextView mQuestionText;
-    private Button mAnswer1Button;
-    private Button mAnswer2Button;
-    private Button mAnswer3Button;
-    private Button mAnswer4Button;
+    private TextView mQuestionTextView;
+    private Button mAnswerButton1;
+    private Button mAnswerButton2;
+    private Button mAnswerButton3;
+    private Button mAnswerButton4;
 
     private QuestionBank mQuestionBank;
     private Question mCurrentQuestion;
 
+    private View mCorrectView;
+    private ViewGroup mAllViews;
+
     private int mScore;
-    private int mNumberOfQuestion;
+    private int mNumberOfQuestions;
 
     public static final String BUNDLE_EXTRA_SCORE = "BUNDLE_EXTRA_SCORE";
     public static final String BUNDLE_STATE_SCORE = "currentScore";
@@ -39,85 +46,98 @@ public class GameActivity extends AppCompatActivity implements View.OnClickListe
     private boolean mEnableTouchEvents;
 
     @Override
-    protected void onSaveInstanceState(Bundle outState) {
-
-        outState.putInt(BUNDLE_STATE_SCORE, mScore);
-        outState.putInt(BUNDLE_STATE_QUESTION, mNumberOfQuestion);
-
-        super.onSaveInstanceState(outState);
-    }
-
-    @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_game);
 
-        mQuestionBank = this.generateQuestions();
+        System.out.println("GameActivity::onCreate()");
 
-        mScore = 0;
-        mNumberOfQuestion = 4;
-        mEnableTouchEvents = true;
+        mQuestionBank = this.generateQuestions();
 
         if (savedInstanceState != null) {
             mScore = savedInstanceState.getInt(BUNDLE_STATE_SCORE);
-            mNumberOfQuestion = savedInstanceState.getInt(BUNDLE_STATE_QUESTION);
+            mNumberOfQuestions = savedInstanceState.getInt(BUNDLE_STATE_QUESTION);
         } else {
             mScore = 0;
-            mNumberOfQuestion = 4;
+            mNumberOfQuestions = 4;
         }
 
-        mQuestionText = (TextView) findViewById(R.id.activity_game_question_txt);
-        mAnswer1Button = (Button) findViewById(R.id.activity_game_answer1_btn);
-        mAnswer2Button = (Button) findViewById(R.id.activity_game_answer2_btn);
-        mAnswer3Button = (Button) findViewById(R.id.activity_game_answer3_btn);
-        mAnswer4Button = (Button) findViewById(R.id.activity_game_answer4_btn);
+        mEnableTouchEvents = true;
 
-        mAnswer1Button.setTag(0);
-        mAnswer2Button.setTag(1);
-        mAnswer3Button.setTag(2);
-        mAnswer4Button.setTag(3);
+        // Wire widgets
+        mQuestionTextView = (TextView) findViewById(R.id.activity_game_question_txt);
+        mAnswerButton1 = (Button) findViewById(R.id.activity_game_answer1_btn);
+        mAnswerButton2 = (Button) findViewById(R.id.activity_game_answer2_btn);
+        mAnswerButton3 = (Button) findViewById(R.id.activity_game_answer3_btn);
+        mAnswerButton4 = (Button) findViewById(R.id.activity_game_answer4_btn);
 
-        mAnswer1Button.setOnClickListener(this);
-        mAnswer2Button.setOnClickListener(this);
-        mAnswer3Button.setOnClickListener(this);
-        mAnswer4Button.setOnClickListener(this);
+        // Use the tag property to 'name' the buttons
+        mAnswerButton1.setTag(0);
+        mAnswerButton2.setTag(1);
+        mAnswerButton3.setTag(2);
+        mAnswerButton4.setTag(3);
 
+        mAnswerButton1.setOnClickListener(this);
+        mAnswerButton2.setOnClickListener(this);
+        mAnswerButton3.setOnClickListener(this);
+        mAnswerButton4.setOnClickListener(this);
 
         mCurrentQuestion = mQuestionBank.getQuestion();
         this.displayQuestion(mCurrentQuestion);
     }
 
     @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        outState.putInt(BUNDLE_STATE_SCORE, mScore);
+        outState.putInt(BUNDLE_STATE_QUESTION, mNumberOfQuestions);
+
+        super.onSaveInstanceState(outState);
+    }
+
+    @Override
     public void onClick(View v) {
         int responseIndex = (int) v.getTag();
 
-        if(responseIndex == mCurrentQuestion.getAnswerIndex()){
-            //Good Answer
+        if (responseIndex == mCurrentQuestion.getAnswerIndex()) {
+            // Good answer
+            Toast t = Toast.makeText(this, "Correct", Toast.LENGTH_SHORT);
+            t.setGravity(Gravity.TOP|Gravity.CENTER_VERTICAL, 0, 0);
+            t.show();
+
+            // Show the good answer in green
+            v.setBackgroundColor(0xFF008000); // Green color
             mScore++;
-            Toast.makeText(this,"Correct", Toast.LENGTH_SHORT).show();
-        }
-        else{
-            //Wrong Answer
-            Toast.makeText(this,"Wrong Answer", Toast.LENGTH_SHORT).show();
+        } else {
+            // Wrong answer
+            Toast t = Toast.makeText(this, "Wrong Answer", Toast.LENGTH_SHORT);
+            t.setGravity(Gravity.TOP|Gravity.CENTER_VERTICAL, 0, 0);
+            t.show();
+
+            // Show the wrong answer in red and the good answer in green
+            v.setBackgroundColor(0xFFFF0000); // Red Color
+            mAllViews = (ViewGroup) v.getParent(); // Search for all views
+            mCorrectView = mAllViews.getChildAt(mCurrentQuestion.getAnswerIndex()+1); // Get the view of correct answer
+            mCorrectView.setBackgroundColor(0xFF008000);
         }
 
         mEnableTouchEvents = false;
 
-        new Handler().postDelayed(new Runnable(){
+        new Handler().postDelayed(new Runnable() {
             @Override
             public void run() {
                 mEnableTouchEvents = true;
 
-                if(--mNumberOfQuestion == 0){
-                    // End of the game
+                // If this is the last question, ends the game.
+                // Else, display the next question.
+                if (--mNumberOfQuestions == 0) {
+                    // End the game
                     endGame();
-                }
-                else{
+                } else {
                     mCurrentQuestion = mQuestionBank.getQuestion();
                     displayQuestion(mCurrentQuestion);
                 }
             }
-        }, 2000);
+        }, 2000); // LENGTH_SHORT is usually 2 second long
     }
 
     @Override
@@ -125,33 +145,40 @@ public class GameActivity extends AppCompatActivity implements View.OnClickListe
         return mEnableTouchEvents && super.dispatchTouchEvent(ev);
     }
 
-    private void endGame(){
+    private void endGame() {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
 
-        builder.setTitle("Well done !")
-                .setMessage("Your score is "+ mScore)
+        builder.setTitle("Well done!")
+                .setMessage("Your score is " + mScore)
                 .setPositiveButton("OK", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        //End of the activity
+                        // End the activity
                         Intent intent = new Intent();
-                        intent.putExtra(BUNDLE_EXTRA_SCORE,mScore);
-                        setResult(RESULT_OK,intent);
+                        intent.putExtra(BUNDLE_EXTRA_SCORE, mScore);
+                        setResult(RESULT_OK, intent);
                         finish();
                     }
                 })
+                .setCancelable(false)
                 .create()
                 .show();
     }
 
-    private void displayQuestion(final Question question){
-        mQuestionText.setText(question.getQuestion());
-        mAnswer1Button.setText(question.getChoiceList().get(0));
-        mAnswer2Button.setText(question.getChoiceList().get(1));
-        mAnswer3Button.setText(question.getChoiceList().get(2));
-        mAnswer4Button.setText(question.getChoiceList().get(3));
-    }
+    private void displayQuestion(final Question question) {
+        mQuestionTextView.setText(question.getQuestion());
+        mAnswerButton1.setText(question.getChoiceList().get(0));
+        mAnswerButton2.setText(question.getChoiceList().get(1));
+        mAnswerButton3.setText(question.getChoiceList().get(2));
+        mAnswerButton4.setText(question.getChoiceList().get(3));
 
+        mAnswerButton1.setBackgroundColor(Color.WHITE);
+        mAnswerButton2.setBackgroundColor(Color.WHITE);
+        mAnswerButton3.setBackgroundColor(Color.WHITE);
+        mAnswerButton4.setBackgroundColor(Color.WHITE);
+
+
+    }
 
     private QuestionBank generateQuestions() {
         Question question1 = new Question("What is the name of the current french president?",
@@ -201,4 +228,38 @@ public class GameActivity extends AppCompatActivity implements View.OnClickListe
                 question9));
     }
 
+    @Override
+    protected void onStart() {
+        super.onStart();
+
+        System.out.println("GameActivity::onStart()");
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        System.out.println("GameActivity::onResume()");
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+
+        System.out.println("GameActivity::onPause()");
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+
+        System.out.println("GameActivity::onStop()");
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+
+        System.out.println("GameActivity::onDestroy()");
+    }
 }

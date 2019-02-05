@@ -14,7 +14,7 @@
         android:layout_margin="10dp"
         android:padding="20dp"
         android:layout_gravity="center_horizontal"
-        android:text="Welcome! What's your name?"
+        android:text="Bienvenue ! Comment vous appelez-vous ?"
         />
 
     <EditText
@@ -24,7 +24,7 @@
         android:layout_gravity="center_horizontal"
         android:layout_marginLeft="10dp"
         android:layout_marginRight="10dp"
-        android:hint="Please type your name"
+        android:hint="Entrez votre nom"
         />
 
 
@@ -35,7 +35,17 @@
         android:layout_gravity="center_horizontal"
         android:layout_marginTop="20dp"
         android:padding="30dp"
-        android:text="Let's Play !"
+        android:text="C'est parti !"
+        />
+
+    <Button
+        android:id="@+id/activity_main_score_btn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginTop="20dp"
+        android:padding="20dp"
+        android:text="Score"
         />
 
 
