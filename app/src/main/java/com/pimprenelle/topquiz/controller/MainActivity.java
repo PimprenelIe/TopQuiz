@@ -37,7 +37,7 @@ public class MainActivity extends AppCompatActivity {
     private int score;
     private SharedPreferences mPreferences;
 
-    private boolean clearPref;
+
 
     //private ScoreList mListScore;
 
@@ -61,20 +61,26 @@ public class MainActivity extends AppCompatActivity {
 
         if (SCORE_ACTIVITY_REQUEST_CODE == requestCode && RESULT_OK == resultCode) {
             // Fetch the score from the Intent
+            System.out.println("MainActivity: SCORE_ACTIVITY_REQUEST_CODE");
+            boolean clearPref;
             clearPref = data.getBooleanExtra(ScoreActivity.BUNDLE_CLEAR, false);
 
-            // Update preferences
-            mPreferences = getSharedPreferences(PREF_APP,MODE_PRIVATE);
 
-            // Update views
-            mGreetingText.setText("Bienvenue ! Comment vous appelez-vous ?");
-            mNameInput.setText("");
-            mNameInput.setSelection(0);
-            mPlayButton.setEnabled(false);
-            mScoreButton.setVisibility(View.INVISIBLE);
+            System.out.println("MainActivity: clearPref : " + clearPref);
 
-            //Update score list
-            importScoreList();
+            if(clearPref){
+                // Update preferences
+                mPreferences.edit().clear().apply();
+                
+                mUser = new User();
+                mScoreList = new ScoreList();
+
+                // Update views
+                greetUser();
+
+                //Update score list
+                importScoreList();
+            }
 
         }
 
@@ -95,7 +101,7 @@ public class MainActivity extends AppCompatActivity {
         mUser = new User();
         mScoreList = new ScoreList();
 
-        clearPref=false;
+
         mPlayButton.setEnabled(false);
         mScoreButton.setVisibility(View.INVISIBLE);
 
@@ -159,13 +165,24 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void greetUser(){
+
         String firstName = mPreferences.getString(PREF_KEY_FIRSTNAME, null);
         if(firstName!=null){
+            System.out.println("MainActivity::greetUser() - prefNonNull");
             int score = mPreferences.getInt(PREF_KEY_SCORE,0);
             mGreetingText.setText("Bonjour "+firstName+" ! Votre dernier score était "+score+". Ferez-vous mieux cette fois ?");
             mNameInput.setText(firstName);
             mNameInput.setSelection(firstName.length());
             mPlayButton.setEnabled(true);
+        }
+        else{
+            System.out.println("MainActivity::greetUser() - prefNull");
+
+            mGreetingText.setText("Bienvenue ! Comment vous appelez-vous ?");
+            mNameInput.setText("");
+            mNameInput.setSelection(0);
+            mPlayButton.setEnabled(false);
+            mScoreButton.setVisibility(View.INVISIBLE);
         }
 
     }
